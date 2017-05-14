@@ -6,7 +6,6 @@ shinyUI(navbarPage(
     sidebarLayout(
       sidebarPanel(
         fileInput("file", "Load a datafile", accept=".csv"),
-        #actionButton("data", "Overview of the data"),
         tags$br(), tags$br(),
         selectInput("classes", "Number of classes",
                     choices=as.list(1:10), multiple=TRUE),
@@ -16,7 +15,7 @@ shinyUI(navbarPage(
         ),
       mainPanel(
         tabsetPanel(type="tabs",
-          tabPanel("Data"),
+          tabPanel("Data", dataTableOutput('data'), tableOutput('summary')),
           tabPanel("Model diagnostics"),
           tabPanel("Model comparison"),
           tabPanel("Parameter estimates")
