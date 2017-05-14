@@ -1,7 +1,12 @@
-#library(gtools) # for rdirichlet()
-
 emLCA <- function(d, k, start.theta=randomTheta(d, k), 
-                  start.pi=gtools::rdirichlet(1, rep(1, k)), tol=1e-5){
+                  start.pi=gtools::rdirichlet(1, rep(1, k)),
+                  tol=1e-5, output.all=TRUE){
+### EM algorithm function to optimize the parameter values
+###   Input: d - list of dummy variables
+#            k - number of classes to estimate
+#            start.theta - starting values for conditional probabilities
+#            start.pi - starting values for relative sizes of classes
+#            tol - tolerance level
   
   theta <- start.theta
   pi  <- start.pi
@@ -29,25 +34,43 @@ emLCA <- function(d, k, start.theta=randomTheta(d, k),
     llik.new <- compLik(likelihoods)
   }
   
-  invisible(list(llik=llik.new,
-                 n.iter=n.iter,
-                 theta=theta,
-                 pi=pi,
-                 posterior=posterior,
-                 starting.values=list(theta=start.theta,
-                                      pi=start.pi)
-                 )
-            )
+  if(output.all){
+    invisible(list(llik=llik.new,
+                   n.iter=n.iter,
+                   theta=theta,
+                   pi=pi,
+                   posterior=posterior,
+                   starting.values=list(theta=start.theta,
+                                        pi=start.pi)
+                   )
+              )
+  } else {
+    invisible(list(llik=llik.new,
+                   n.iter=n.iter,
+                   theta=start.theta,
+                   pi=start.pi
+                   )
+              )
+  }
 }
 
 compLik <- function(likelihoods){
+### computes the sum of log-likelihoods
+  #  input: matrix of unscaled likelihoods
+  #  output: log-likelihood
+  
   sum(log(rowSums(likelihoods)))
 }
 
 updateTheta <- function(d, posterior, theta){
+### Maximisation of conditional probabilities
+  # given expected class memberships and data
+  #   input: d - list of dummy items
+  #          posterior - prob. of class membership for each individual
+  #          theta - conditional probabilities of answers
+  
+  # loop over items
   new.theta <- lapply(1:length(d), function(item){
-    #tab.d <- model.matrix(~factor(d[,item])-1)
-
     i.theta <- t(posterior) %*% d[[item]]
     return(sweep(i.theta, 1, rowSums(i.theta), "/"))
   })
@@ -57,7 +80,14 @@ updateTheta <- function(d, posterior, theta){
 
 
 assignProb <- function(d, k, theta, pi=NA, scale=TRUE){
-
+### Compute the individual probabilities of class membership
+  # input: d - list of dummy items
+  #        k - number of classes
+  #        theta - list of conditional probabilities
+  #        pi - proportional sizes of classes
+  #        scale - return unscaled or scaled
+  
+  
   likelihood <- matrix(1, ncol=k, nrow=nrow(d[[1]]))
 
   # compute the likelihood for each item and integate it over items 
@@ -68,7 +98,6 @@ assignProb <- function(d, k, theta, pi=NA, scale=TRUE){
   # combine with baseline probabilities
   p <- sweep(likelihood, 2, pi, "*")
 
-
   if(scale){
     sweep(p, 1, rowSums(p), "/") # likelihoods sum to one
   } else{
@@ -77,6 +106,9 @@ assignProb <- function(d, k, theta, pi=NA, scale=TRUE){
 }
 
 randomTheta <- function(d, k){
+### Generate random theta values
+  # input: d - list of dummy items
+  #        k - number of classes
   theta <- lapply(1:length(d), function(item){
     levels <- ncol(d[[item]])
 
@@ -84,17 +116,4 @@ randomTheta <- function(d, k){
   })
   
   return(theta)
-}
-
-
-#### Run estimation in parallel ####
-multiLCA <- function(d, models, rep.n, tol=1e-5){
-  require(parallel)
-  cores <- detectCores()
-  makeCluster(cores)
-  fits <- lapply(models, function(k){
-    
-    parLapply(cores, 1:rep.n, emLCA, d, k, tol=tol)
-  })
-  
 }
