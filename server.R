@@ -1,5 +1,6 @@
-
 library(shiny)
+source("LCA.R")
+source("DataHandling.R")
 
 shinyServer(function(input, output) {
 
