@@ -1,5 +1,24 @@
-### Test updateTheta ###
+#### Run example on poLCA ####
+library(poLCA)
+d <- read.csv("example.csv")
+m3 <- poLCA(cbind(i1, i2, i3, i4, i5, i6)~1, d+1, 3)
 
+
+d2 <- data.frame(x1=sample(1:3, 100, TRUE), 
+                 x2=sample(1:5, 100, TRUE),
+                 x3=sample(c(TRUE, FALSE), 100, TRUE),
+                 x4=sample(c("ano", "ne", "neser"), 100, TRUE)
+)
+d2po <- d2
+d2po[,3] <- as.integer(d2po[,3]) +1 
+d2po[,4] <- as.integer(d2po[,4])
+
+m22 <- poLCA(cbind(x1, x2, x3, x4)~1, d2po, 2)
+### Test reshape ###
+tab.d <- reshapeData(d)
+tab.d2 <- reshapeData(d2)
+
+### Test updateTheta ###
 testUpdateTheta <- function(d, posterior, theta){
   t1 <- updateTheta(d, posterior, theta)
   t2 <- updateTheta2(d, posterior, theta)
