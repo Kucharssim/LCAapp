@@ -25,5 +25,9 @@ shinyServer(function(input, output) {
              })
       foo
     })
+    
+    output$diag <- renderPrint({
+      
+    })
   })
 })

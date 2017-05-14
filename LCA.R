@@ -1,5 +1,4 @@
 #library(gtools) # for rdirichlet()
-
 emLCA <- function(d, k, start.theta=randomTheta(d, k), 
                   start.pi=gtools::rdirichlet(1, rep(1, k)), tol=1e-5){
   
