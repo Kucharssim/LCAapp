@@ -22,9 +22,10 @@ shinyServer(function(input, output) {
     }
     tab.d <- reshapeData(data)
     
-    output$data <- renderDataTable({
-      data
-    })
+    output$data <- DT::renderDataTable(
+      data,
+      selection = list(target="column")
+    )
     
     output$summary <- renderTable({
       foo <- lapply(tab.d, function(item){
@@ -37,11 +38,27 @@ shinyServer(function(input, output) {
     
     
     observeEvent(input$estimate, {
+      models <- as.numeric(isolate(input$classes))
+      rep.n <- as.numeric(isolate(input$replications))
+      multi.fit <- multiLCA(tab.d, models, rep.n)
+      sum.multi.fit <- summary.multiLCA(multi.fit)
+      final.fit <- fitOptimal(tab.d, models, 
+                              sum.multi.fit$optimal,
+                              multi.fit)
+      
       output$diag <- renderPrint({
-        models <- as.numeric(isolate(input$classes))
-        rep.n <- as.numeric(isolate(input$replications))
-        multiLCA(tab.d, models, rep.n)
+        sum.multi.fit
         })
+      
+      output$comparison <- DT::renderDataTable(
+          multiFitMeasures(tab.d, final.fit),
+          options = list(paging=FALSE,
+                         searching=FALSE)
+      )
+      
+      output$parameters <- renderPrint({
+        final.fit
+      })
     })
   })
 })

@@ -1,10 +1,24 @@
 multiLCA <- function(d, models, rep.n, tol=1e-5){
+  ### Fits a n models rep.n times in parallel
+  ### input: d - dummy data
+  ###        models - vector of number of classes to estimate
+  ###        rep.n - how many times run th replication
+  ###        tol - tolerance of te emLCA algorithm
+  ### output: list - replications nested within models
+  ###                $llik - log.likelihood
+  ###                $n.iter - number of iterations to reach the soltion
+  ###                $theta, $pi - starting values
+  
   clusterExport(cl=cl, varlist = funLCA)
+  
   fits <- lapply(models, function(k){
-    parLapply(cl, 1:rep.n, function(x) {
+    
+    parLapply(cl, 1:rep.n, function(x){
       emLCA(d, k, tol=tol, output.all = FALSE)
     })
+    
   })
+  
   names(fits) <- models
   return(fits)
 }
@@ -28,7 +42,15 @@ summary.multiLCA <- function(object){
   list(llik=llik, n.iter=n.iter, is.max=is.max, optimal=optimal)
 }
 
+
 fitOptimal <- function(d, models, optimal, starts){
+  ### Fit optimal models
+  ### input: d - dummy data
+  ###        models - vector of number of classes to estimate
+  ###        optimal - output $optimal of the summary.multiLCA
+  ###        starts - output of multiLCA
+  ### output: list of the best fit per model
+  
   fits <- lapply(1:length(optimal), function(o){
     curr.optimal <- optimal[o]
     emLCA(d = d, 
@@ -36,5 +58,6 @@ fitOptimal <- function(d, models, optimal, starts){
           start.theta = starts[[o]][[curr.optimal]]$theta,
           start.pi = starts[[o]][[curr.optimal]]$pi)
   })
+  names(fits) <- models
   return(fits)
 }
