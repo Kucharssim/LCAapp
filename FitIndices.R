@@ -41,14 +41,11 @@ entropy <- function(p){
     return(1)
     }
   n <- nrow(p)
-  #log.p <- log(p)
+  log.p <- log(p)
+  log.p[log.p==-Inf] <- 0
   
-  ent <- sum(p * log(p))
-  #ent <- 0
-  #for (i in 1:n){
-  #  ent <- ent + sum(p[i, ] * log(p[i, ]))
-  #}
-  ent <- 1 + (1/(n*log(k))) * ent
+  ent <- sum(p * log.p)
+  ent <- 1 + (ent/(n*log(k)))
   return(ent)
 }
 
