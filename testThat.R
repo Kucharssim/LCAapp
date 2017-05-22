@@ -131,3 +131,16 @@ testTimeProb <- function(d, k, theta, pi, scale){
   
   return(list(time1, time2))
 }
+
+
+testFitOptimal <- function(d, models, optimal, multifit){
+  mult <- lapply(1:length(optimal), function(x){multifit[[x]][[optimal[x]]]})
+  
+  opt <- fitOptimal(d, models, optimal, multifit)
+  print(sapply(opt, function(x){x$llik}))
+  print(sapply(opt, function(x){x$n.iter}))
+  
+  list(sapply(mult, function(x){x$llik}) == sapply(opt, function(x){x$llik}),
+       sapply(mult, function(x){x$n.iter}) == sapply(opt, function(x){x$n.iter})
+  )
+}

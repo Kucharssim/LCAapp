@@ -38,6 +38,7 @@ emLCA <- function(d, k, start.theta=randomTheta(d, k),
   if(output.all){
     invisible(list(llik=llik.new,
                    n.iter=n.iter,
+                   classes=k,
                    theta=theta,
                    pi=pi,
                    posterior=posterior,
