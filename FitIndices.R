@@ -96,8 +96,8 @@ fitMeasures <- function(d, rawd, model){
 }
 
 multiFitMeasures <- function(d, rawd, models){
-  clusterExport(cl=cl, varlist = funLCA)
-  tab <- parSapply(cl, models, function(model){
+  #clusterExport(cl=cl, varlist = funLCA)
+  tab <- sapply(models, function(model){
     fitMeasures(d, rawd, model)
     })
   tab <- t(tab)

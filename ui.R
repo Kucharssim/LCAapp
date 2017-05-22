@@ -1,5 +1,3 @@
-library(shiny)
-
 shinyUI(navbarPage(
   title="Latent Class Analysis",
   tabPanel("Model Settings",
@@ -16,13 +14,12 @@ shinyUI(navbarPage(
         ),
       mainPanel(
         tabsetPanel(type="tabs",
-          tabPanel("Data", DT::dataTableOutput('data'), tableOutput('summary')),
+          tabPanel("Data", DT::dataTableOutput('data'), uiOutput('summary')),
           tabPanel("Model diagnostics", verbatimTextOutput('diag')),
           tabPanel("Model comparison", DT::dataTableOutput('comparison')),
           tabPanel("Parameter estimates", verbatimTextOutput('parameters'))
         )
-        # plotOutput("blabla")
-      )
+      ) # mainPanel
     )  # sidebarLayout
   ),  # tabPanel
   
@@ -43,11 +40,13 @@ shinyUI(navbarPage(
       )
     )  # sidebarLayout
   ),  # tabPanel
-  tabPanel("About",
-           fluidRow(column(2),
-                    column(8, includeHTML("Intro.html")),
-                    column(2)
-           )
+  tabPanel("About"#, includeHTML(rmarkdown::render("Intro.Rmd"))
+           #fluidRow(column(2),
+          #          column(8, 
+          #                 includeHTML("Intro.html")
+          #                 ),
+          #          column(2)
+          # )
   )
 
 ))
