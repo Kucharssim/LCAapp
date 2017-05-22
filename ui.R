@@ -43,6 +43,7 @@ shinyUI(navbarPage(
       )
     )  # sidebarLayout
   ),  # tabPanel
-  tabPanel("About")
+  tabPanel("About",
+           includeHTML("Intro.html"))
 
 ))
