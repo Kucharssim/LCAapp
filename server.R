@@ -20,20 +20,21 @@ shinyServer(function(input, output) {
     
   output$summary <- renderUI({
     summ <- lapply(tab.d(), function(item){
-      abs <- colSums(item)
-      rel <- round(abs/nrow(item), 2)
-      as.data.frame(rbind(abs, rel))
+      Frequency <- colSums(item)
+      `Rel. Frequency` <- round(Frequency/nrow(item), 2)
+      as.data.frame(rbind(Frequency, `Rel. Frequency`))
       })
-    print(summ)
-    summ <- lapply(summ, function(item){ 
-      #paste(
-        xtable::xtable(item, type="html",
-                           html.table.attributes='class="data table table-bordered table-condensed"')
-        #)
-      })
-    print(summ)
+
+    summ <- sapply(summ, function(item){
+      print(item)
+      knitr::kable(item, "html", caption="i1")
+      # print(
+      #   xtable::xtable(item), 
+      #   type="html"#,
+      #   #html.table.attributes='class="data table table-bordered table-condensed"'
+      #   )
+      }, simplify = FALSE, USE.NAMES = TRUE)
     summ <- do.call(paste, summ)
-    print(summ)
     return(div(HTML(summ),class="shiny-html-output"))
   })
   
