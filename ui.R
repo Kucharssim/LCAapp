@@ -43,6 +43,11 @@ shinyUI(navbarPage(
       )
     )  # sidebarLayout
   ),  # tabPanel
-  tabPanel("About")
+  tabPanel("About",
+           fluidRow(column(2),
+                    column(8, includeHTML("Intro.html")),
+                    column(2)
+           )
+  )
 
 ))

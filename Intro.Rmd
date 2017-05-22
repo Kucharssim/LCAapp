@@ -1,0 +1,118 @@
+---
+title: "Introduction into Latent Class Analysis"
+output: html_document
+---
+<br>
+for code and further information, visit [Github](https://github.com/Kucharssim/LCAapp) page of the project.
+
+<script type="text/javascript">
+
+  $(document).ready(function() {
+
+    $('h1, h2, h3, h4, h5').each(function() {
+
+      $(this).attr('id', $(this).html());
+    });
+  });
+</script>
+
+### Contents
+
+#### 1) <a href="#What is LCA?">What is LCA?</a><br>
+#### 2) <a href="#How is LCA done?">How is LCA done?</a><br>
+##### <a href="#Estimating parameters">Estimating parameters</a><br>
+##### <a href="#Comparing models">Comparing models</a><br>
+#### 3) <a href="#How to work with the App?">How to work with the App?</a><br>
+##### <a href="#Loading the data">Loading the data</a><br>
+##### <a href="#Model definition">Model definition</a><br>
+##### <a href="#Checking the convergence">Checking the convergence</a><br>
+##### <a href="#Comparing the models">Comparing the models</a><br>
+##### <a href="#Interpreting the results">Interpreting the results</a><br>
+##### <a href="#Exporting the data">Exporting the data</a><br>
+#### <a href="#Further reading">Further reading</a><br>
+
+## What is LCA?
+
+Latent Class Analysis is a statistical technique, a special case of mixture modelling. The focus of this approach is to find underlying (latent) categorical structure in the data which explains dependencies among the observed categorical variables. This method can be thus used if we want to find a distinct *classes* (groups) of individual cases which have similar answer patterns across all observed variables.
+
+To ilustrate the idea, let's imagine a simple problem. Suppose you asked random people whether they will watch a 2017 Europa League final (Ajax Amsterdam vs Manchester United) and whether they put chocolate sprinkles on their toast. You observed the following frequencies (summarised in a contingency table):
+
+```{r, echo=FALSE}
+set.seed(100)
+htmldata <- data.frame(final = c(sample(c("Yes", "No"), 400, TRUE, c(0.35, 0.65)),
+                                 sample(c("Yes", "No"), 100, TRUE, c(0.15, 0.85))
+                                 ),
+                       sprinkles = c(sample(c("Yes", "No"), 400, TRUE, c(0.5, 0.5)),
+                                 sample(c("Yes", "No"), 100, TRUE, c(0.1, 0.9))
+                                 )
+)
+tab.htmldata <- table(htmldata)
+ch.test <- chisq.test(tab.htmldata)
+#print(xtable::xtable(table(htmldata)), type="html")
+knitr::kable(tab.htmldata)
+```
+
+If you applied a test for dependency between the two variables, you would find that the two variables relate to each other (for example, $\chi^2$ test of independence yields $\chi^2$ (1) = `r round(ch.test$statistic,2)`, p = `r round(ch.test$p.value, 3)`). Now, here's the question: Should we conclude a genuine relationship between the two variables? Probably every reasonable person would doubt that eating sprinkles makes you watch football, or that there is any other direct relationship between those two variables. In this case, it is likely that the relationship between the variables is spurious, caused by other factor(s) we didn't observe. For example, one explanation could be that this relationship might be explained by whether a person is dutch or not (dutch people are more likely on average watch a final game featuring dutch club, and they are also more likely to put sprinkles on their toast).
+
+And this is where LCA comes in handy, becase using this technique, we *assume* that the relationship between the variables *is spurious* and caused by mixture of different populations with different answer patterns. By conditioning on the group membership, the variables should become unrelated. (*Disclaimer: The fact that that we assume the variables unrelated under conditioning on the class membership does not mean we cannot conduct LCA on data where we do not observe relationship between the variables in the first place. That could be caused by a special case of mixture similar to a suppressor effect in regression context*)
+
+To apply the LCA model, we need to specify how many different classes (groups) are in the data and then we can estimate a model, in which we try to optimize two distincts sets of parameters, which describe the data:
+
+1) The relative sizes of the latent classes
+
+2) The conditional probabilities of certain answers given a case belongs to a one of the groups
+
+If we applied a two-class model to the data we have, we get the following results:
+
+```{r, include=FALSE}
+source("LCA.R")
+source("DataHandling.R")
+fit <- emLCA(reshapeData(htmldata), 2, tol=1e-10)
+```
+
+We can see that the model estimated that people in one group (representing about 80 % of the sample) have about 40 % probability of watching the game and about 50 % of them eat sprinkles. Only 3 % of the people in the other group (20 % in the sample) will watch the game and just about 9 % of them eat sprinkles. This finding could be in line with the hypothesis that the observed data come from dutch and non-dutch population, in which the dutch people are more likely to watch football and eat sprinkles (but be avare that this interpretation takes a leap of faith, as the groups could be formed by different characteristics than just whether they are dutch or not).
+
+Before we go ahead to show how the LCA works in detail, let us summarize what we had and what we did.
+
+1) We had data of two categorical items, and 
+
+2) Assumed a latent categorical structure which could explain the relationship between the variables.
+
+3) By applying LCA, we were able to estimate the relative size of the two classes and the answer patterns conditioned on the class membership.
+
+To put into a context, LCA is a special case of a latent variable model. It is characterized by inferring a categorical latent structure from a categorical data, which distinguishes it from Latent Profile Analysis, Factor Analysis and Item Response Theory:
+
+But now, let's briefly explain how the method works.
+
+## How is LCA done?
+
+### Estimating parameters
+
+In the previous question we showed that with LCA, we can estimate relative sizes of the latent classes and their conditional probabilities of responses on a set of manifest variables. There are many possible solutions to solve the problem, we will focus on a basic one, called Expectation-Maximisation algorithm.
+
+Assume for a moment that when you were asking about the football match and sprinkles, you also asked whether the respondent is dutch or not. In this case, nothing would be easier than:
+
+1) Compute the relative size of the dutch and non-dutch group in the sample (just by counting how many people are dutch from the whole sample).
+
+2) The conditional probabilities of the responses (by splitting the data by the nationality and compute the relative frequencies of answers to the questions for both groups separately).
+
+But how to compute it without this information?
+
+### Comparing models
+
+## How to work with the App?
+
+### Loading the data
+
+### Model definition
+
+### Checking the convergence
+
+### Comparing the models
+
+### Interpreting the results
+
+### Exporting the data
+
+# Further reading
+
