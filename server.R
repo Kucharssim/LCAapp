@@ -51,7 +51,7 @@ shinyServer(function(input, output) {
         })
       
       output$comparison <- DT::renderDataTable(
-          multiFitMeasures(tab.d, final.fit),
+          multiFitMeasures(tab.d, data, final.fit),
           options = list(paging=FALSE,
                          searching=FALSE)
       )

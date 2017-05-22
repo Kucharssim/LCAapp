@@ -8,44 +8,58 @@ df <- function(k, tab.d){
   #} else(return(0))
 }
 
-chisq <- function(d, theta, pi){
+chigSq <- function(d, theta, pi){
   n <- nrow(d)
   observed <- table(d)
   expected <- Expected(pi, theta, n)
 
   chi <- sum(((observed-expected)^2)/expected)
   
-  return(chi)
+  g <- 2 * sum(observed*log(observed/expected), na.rm=TRUE)
+  
+  return(c(chi, g))
 }
 
 Expected <- function(pi, theta, n=NA){
-  probs <- weightProb(pi, theta)
+  #probs <- weightProb(pi, theta)
   #cross.tab <- array(NA, dim=sapply(probs, nrow))
   
-  p.table <- probs[[1]] %*% t(probs[[2]])
-  
-  for(i in 3:length(probs)){
-    p.table <- drop( p.table %o% probs[[i]] )
-  }
-  
-  if(is.na(n)){
-    p.table
-  } else {
-    p.table * n
-  }
-}
-weightProb <- function(pi, theta){
-  # Weights the probabilities of answers under different classes by their probability
-  # input: pi - vector of class probabilities
-  #        theta - list of conditional probs
-  # output: list of vectors of answering patterns per item
-  
-  wP <- lapply(theta, function(item){
-    t(item) %*% pi
+  # p.table <- probs[[1]] %*% t(probs[[2]])
+  # 
+  # for(i in 3:length(probs)){
+  #   p.table <- drop( p.table %o% probs[[i]] )
+  # }
+
+  tab <- lapply(1:length(pi), function(class) {
+    probs <- lapply(theta, function(x){
+      t(t(x[class,]))
+    })
+    
+    p.table <- (probs[[1]] %*% t(probs[[2]]))
+    
+    for(i in 3:length(probs)){
+      p.table <- drop( p.table %o% probs[[i]] )
+    }
+    
+    return(p.table * n * pi[class])
   })
   
-  return(wP)
+  return(Reduce("+", tab))
 }
+
+# weightProb <- function(pi, theta){
+#   # Weights the probabilities of answers under different classes by their probability
+#   # input: pi - vector of class probabilities
+#   #        theta - list of conditional probs
+#   # output: list of vectors of answering patterns per item
+#   
+#   wP <- lapply(theta, function(item){
+#     t(item) %*% pi
+#   })
+#   
+#   return(wP)
+# }
+
 aicbic <- function(llik, df, n){
   aic <- -2*llik + 2*df
   bic <- -2*llik + log(n)*df
@@ -71,22 +85,22 @@ entropy <- function(p){
   return(ent)
 }
 
-fitMeasures <- function(d, model){
-  #print(model$classes)
+fitMeasures <- function(d, rawd, model){
   classes <- model$classes
   df <- df(classes, d)
+  chi.g <- chigSq(rawd, model$theta, model$pi)
   aicbic <- aicbic(model$llik, df, nrow(model$posterior))
   entropy <- entropy(model$posterior)
   
-  c(classes, df, aicbic, entropy)
+  c(classes, chi.g, df, aicbic, entropy)
 }
 
-multiFitMeasures <- function(d, models){
-  tab <- sapply(models, function(model){
-    #print(model)
-    fitMeasures(d, model)
+multiFitMeasures <- function(d, rawd, models){
+  clusterExport(cl=cl, varlist = funLCA)
+  tab <- parSapply(cl, models, function(model){
+    fitMeasures(d, rawd, model)
     })
   tab <- t(tab)
-  colnames(tab) <- c("classes", "df", "AIC", "BIC", "Entropy")
+  colnames(tab) <- c("classes","Chi", "G", "df", "AIC", "BIC", "Entropy")
   return(tab)
 }
