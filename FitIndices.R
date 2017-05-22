@@ -9,21 +9,43 @@ df <- function(k, tab.d){
 }
 
 chisq <- function(d, theta, pi){
-  #observed <- table(d)
   n <- nrow(d)
-  observed <- apply(d, 2, table)
-  # expected <- sapply(theta, function(item){
-  #   t(pi) %*% item
-  # })
-  
-  expected <- numeric()
-  for ( )
-  expected <- expected * n
+  observed <- table(d)
+  expected <- Expected(pi, theta, n)
+
   chi <- sum(((observed-expected)^2)/expected)
   
-  list(observed, expected, chi)
+  return(chi)
 }
 
+Expected <- function(pi, theta, n=NA){
+  probs <- weightProb(pi, theta)
+  #cross.tab <- array(NA, dim=sapply(probs, nrow))
+  
+  p.table <- probs[[1]] %*% t(probs[[2]])
+  
+  for(i in 3:length(probs)){
+    p.table <- drop( p.table %o% probs[[i]] )
+  }
+  
+  if(is.na(n)){
+    p.table
+  } else {
+    p.table * n
+  }
+}
+weightProb <- function(pi, theta){
+  # Weights the probabilities of answers under different classes by their probability
+  # input: pi - vector of class probabilities
+  #        theta - list of conditional probs
+  # output: list of vectors of answering patterns per item
+  
+  wP <- lapply(theta, function(item){
+    t(item) %*% pi
+  })
+  
+  return(wP)
+}
 aicbic <- function(llik, df, n){
   aic <- -2*llik + 2*df
   bic <- -2*llik + log(n)*df
