@@ -5,16 +5,17 @@ shinyUI(navbarPage(
       sidebarPanel(
         fileInput("file", "Load a datafile", accept=".csv"),
         tags$br(), tags$br(),
-        selectInput("classes", "Number of classes",
-                    choices=as.list(1:10), multiple=TRUE,
-                    selected = 1:5),
+        uiOutput("classes"),
+        # selectInput("classes", "Number of classes",
+        #             choices=as.list(1:10), multiple=TRUE,
+        #             selected = 1:5),
         numericInput("replications", "Select the number of replications",
                      value=10, min=0),
         actionButton("estimate", "Estimate models")
         ),
       mainPanel(
         tabsetPanel(type="tabs",
-          tabPanel("Data", DT::dataTableOutput('data'), uiOutput('summary')),
+          tabPanel("Data", DT::dataTableOutput('datatable'), uiOutput('summary')),
           tabPanel("Model diagnostics", verbatimTextOutput('diag')),
           tabPanel("Model comparison", DT::dataTableOutput('comparison')),
           tabPanel("Parameter estimates", verbatimTextOutput('parameters'))

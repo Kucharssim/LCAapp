@@ -1,6 +1,7 @@
 library(shiny)
 library(parallel)
 library(gtools)
+library(DT)
 source("LCA.R")
 source("DataHandling.R")
 source("multiLCA.R")
