@@ -17,7 +17,8 @@ shinyUI(navbarPage(
         tabsetPanel(type="tabs",
           tabPanel("Data", DT::dataTableOutput('datatable'), uiOutput('summary')),
           tabPanel("Model diagnostics", verbatimTextOutput('diag')),
-          tabPanel("Model comparison", DT::dataTableOutput('comparison')),
+          tabPanel("Model comparison", DT::dataTableOutput('comparison'),
+                   plotOutput("plotIC")),
           tabPanel("Parameter estimates", verbatimTextOutput('parameters'))
         )
       ) # mainPanel

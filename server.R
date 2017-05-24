@@ -83,7 +83,9 @@ shinyServer(function(input, output) {
                      selected = as.numeric(which.min(rv$fit.measures[,6]))
     )
   )
-
+  output$plotIC <- renderPlot({
+    plotComparison(rv$fit.measures)
+  })
   output$parameters <- renderPrint({
     rv$final.fit[[input$comparison_rows_selected]]
   })
