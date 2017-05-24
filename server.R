@@ -1,64 +1,90 @@
-library(shiny)
-library(parallel)
-library(gtools)
-source("LCA.R")
-source("DataHandling.R")
-source("multiLCA.R")
-
-funLCA <- c("emLCA", "compLik", "assignProb",
-            "randomTheta", "updateTheta", "tab.d", "k")
-
-cores <- detectCores() - 1
-cl <- makeCluster(cores)
-
 shinyServer(function(input, output) {
-  observe({
+  output$classes <- renderUI({
+    max <- prod(sapply(tab.d(), ncol))
+    selectInput("classes", "Number of classes",
+                choices=as.list(1:max), multiple=TRUE)
+  })
+  
+  fulldata <- reactive({    
     inFile <- input$file
     
     if(is.null(inFile)){
-      data <- read.csv('example.csv')
+      read.csv('example.csv')
     } else {
-      data <- read.csv(inFile$datapath)
+      read.csv(inFile$datapath)
     }
-    tab.d <- reshapeData(data)
-    
-    output$data <- DT::renderDataTable(
-      data,
-      selection = list(target="column")
-    )
-    
-    output$summary <- renderTable({
-      foo <- lapply(tab.d, function(item){
-                abs <- colSums(item)
-                rel <- round(abs/nrow(item), 2)
-                rbind(abs, rel)
-             })
-      foo
-    })
-    
-    
-    observeEvent(input$estimate, {
-      models <- as.numeric(isolate(input$classes))
-      rep.n <- as.numeric(isolate(input$replications))
-      multi.fit <- multiLCA(tab.d, models, rep.n)
-      sum.multi.fit <- summary.multiLCA(multi.fit)
-      final.fit <- fitOptimal(tab.d, models, 
-                              sum.multi.fit$optimal,
-                              multi.fit)
+  })
+  
+  data <- reactive({
+    clicked <- input$datatable_columns_selected
+
+    if(is.null(clicked)){
+      fulldata()
+    } else {
+      fulldata()[,clicked+1]
+    }
       
-      output$diag <- renderPrint({
-        sum.multi.fit
-        })
-      
-      output$comparison <- DT::renderDataTable(
-          multiFitMeasures(tab.d, data, final.fit),
-          options = list(paging=FALSE,
-                         searching=FALSE)
-      )
-      
-      output$parameters <- renderPrint({
-        final.fit
+  })
+  
+  tab.d <- reactive({
+    reshapeData(data())
+  })
+
+  output$datatable <- DT::renderDataTable(
+    fulldata(),
+    selection = list(target="column"),
+    rownames = FALSE
+  )
+    
+  output$summary <- renderUI({
+    
+    summ <- lapply(names(tab.d()), function(item){
+      Frequency <- colSums(tab.d()[[item]])
+      `Rel. Frequency` <- round(Frequency/nrow(tab.d()[[item]]), 2)
+      table <- as.data.frame(rbind(Frequency, `Rel. Frequency`))
+      knitr::kable(table, "html", caption=item)
       })
+
+    summ <- do.call(paste, summ)
+    return(div(HTML(summ), class="shiny-html-output"))
+  })
+  
+  rv <- reactiveValues()
+    
+  observeEvent(input$estimate, {
+    tab.d <- tab.d()
+    rv$models <- as.numeric(isolate(input$classes))
+    rep.n <- as.numeric(isolate(input$replications))
+    funLCA <- c("emLCA", "compLik", "assignProb",
+                "randomTheta", "updateTheta", "tab.d", "fitMeasures")
+    clusterExport(cl=cl, varlist = funLCA, envir = environment())
+  
+    withProgress(message = "Computing the models", value=0,{
+      rv$multi.fit <- multiLCA(tab.d, rv$models, rep.n)
+      
+      incProgress(amount=1/(length(rv$models)+1), detail = "Summary statistics")
+      rv$summary.LCA <- summary.multiLCA(rv$multi.fit)
+      rv$final.fit <- fitOptimal(tab.d, rv$models,
+                                 rv$summary.LCA$optimal,
+                                 rv$multi.fit)
+      rv$fit.measures <- multiFitMeasures(tab.d, data(), rv$final.fit)
     })
+    
+  })
+  
+  output$diag <- renderPrint({
+    list(loglik=apply(rv$summary.LCA[[1]], 2, sort, TRUE),
+         replicated=colSums(rv$summary.LCA[[3]]))
+  })
+  
+  output$comparison <- DT::renderDataTable(
+    rv$fit.measures, rownames = FALSE, 
+    selection = list(mode = "single",
+                     selected = as.numeric(which.min(rv$fit.measures[,6]))
+    )
+  )
+
+  output$parameters <- renderPrint({
+    rv$final.fit[[input$comparison_rows_selected]]
   })
 })

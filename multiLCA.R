@@ -8,10 +8,13 @@ multiLCA <- function(d, models, rep.n, tol=1e-5){
   ###                $llik - log.likelihood
   ###                $n.iter - number of iterations to reach the soltion
   ###                $theta, $pi - starting values
-  
-  clusterExport(cl=cl, varlist = funLCA)
+  #funLCA <- c("emLCA", "compLik", "assignProb",
+  #            "randomTheta", "updateTheta", "d", "k")
+
+  #clusterExport(cl=cl, varlist = funLCA, envir = environment())
   
   fits <- lapply(models, function(k){
+    incProgress(1/(length(models)+1), detail=paste("Computing", k, "classes"))
     
     parLapply(cl, 1:rep.n, function(x){
       emLCA(d, k, tol=tol, output.all = FALSE)
