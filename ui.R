@@ -26,21 +26,20 @@ shinyUI(navbarPage(
   ),  # tabPanel
   
   tabPanel("Output",
-    sidebarLayout(
-      sidebarPanel(
-        selectInput("PlotModel", "Select the model", choices = as.list(1:10)),
-        checkboxGroupInput("WhichPlot", "How to plot?", 
-                           choices = list("Item-wise", "Class-wise")),
-        downloadButton("Download", "Download class membership")
-      ),
-      mainPanel(
+    #sidebarLayout(
+    #  sidebarPanel(
+        downloadButton("Download", "Download class membership"),
+    #  ),
+    #  mainPanel(
         tabsetPanel(type="tabs",
-          tabPanel("Plots"),
+          tabPanel("Plots", plotOutput("plotProportions"),
+                   checkboxInput("WhichPlot", "Group by items"),
+                   plotOutput("plotProbabilities")),
           tabPanel("Parameter estimates"),
           tabPanel("Class membership")
           )
-      )
-    )  # sidebarLayout
+    #  )
+    #)  # sidebarLayout
   ),  # tabPanel
   tabPanel("About"#, includeHTML(rmarkdown::render("Intro.Rmd"))
            #fluidRow(column(2),

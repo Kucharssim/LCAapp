@@ -89,4 +89,17 @@ shinyServer(function(input, output) {
   output$parameters <- renderPrint({
     rv$final.fit[[input$comparison_rows_selected]]
   })
+  
+  output$plotProportions <- renderPlot({
+    plotProportions(rv$final.fit[[input$comparison_rows_selected]]$pi,
+                    rv$final.fit[[input$comparison_rows_selected]]$classes)
+  })
+  
+  output$plotProbabilities <- renderPlot({
+    theta <- rv$final.fit[[input$comparison_rows_selected]]$theta
+    names(theta) <- colnames(data())
+    
+    plotProbabilities(theta, input$WhichPlot)
+  })
 })
+
