@@ -21,15 +21,7 @@ chigSq <- function(d, theta, pi){
 }
 
 Expected <- function(pi, theta, n=NA){
-  #probs <- weightProb(pi, theta)
-  #cross.tab <- array(NA, dim=sapply(probs, nrow))
   
-  # p.table <- probs[[1]] %*% t(probs[[2]])
-  # 
-  # for(i in 3:length(probs)){
-  #   p.table <- drop( p.table %o% probs[[i]] )
-  # }
-
   tab <- lapply(1:length(pi), function(class) {
     probs <- lapply(theta, function(x){
       t(t(x[class,]))
@@ -37,8 +29,10 @@ Expected <- function(pi, theta, n=NA){
     
     p.table <- (probs[[1]] %*% t(probs[[2]]))
     
-    for(i in 3:length(probs)){
-      p.table <- drop( p.table %o% probs[[i]] )
+    if(length(probs)>2){
+      for(i in 3:length(probs)){
+        p.table <- drop( p.table %o% probs[[i]] )
+      }
     }
     
     return(p.table * n * pi[class])

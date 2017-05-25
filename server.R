@@ -5,6 +5,13 @@ shinyServer(function(input, output) {
                 choices=as.list(1:max), multiple=TRUE)
   })
   
+  output$estimate <- renderUI({
+    validate(
+      need(length(input$classes)>0, "Specify the models")
+    )
+    actionButton("estimate", "Estimate models")
+  })
+  
   fulldata <- reactive({    
     inFile <- input$file
     
@@ -19,6 +26,8 @@ shinyServer(function(input, output) {
     clicked <- input$datatable_columns_selected
 
     if(is.null(clicked)){
+      fulldata()
+    } else if(length(clicked)==1){
       fulldata()
     } else {
       fulldata()[,clicked+1]
@@ -37,6 +46,10 @@ shinyServer(function(input, output) {
   )
     
   output$summary <- renderUI({
+    validate(
+      need(length(input$datatable_columns_selected) != 1,
+           "Select more than one item")
+    )
     
     summ <- lapply(names(tab.d()), function(item){
       Frequency <- colSums(tab.d()[[item]])
@@ -53,21 +66,22 @@ shinyServer(function(input, output) {
     
   observeEvent(input$estimate, {
     tab.d <- tab.d()
+    tol <- input$tolerance
     rv$models <- as.numeric(isolate(input$classes))
     rep.n <- as.numeric(isolate(input$replications))
     funLCA <- c("emLCA", "compLik", "assignProb",
-                "randomTheta", "updateTheta", "tab.d", "fitMeasures")
+                "randomTheta", "updateTheta", "tab.d", "fitMeasures", "tol")
     clusterExport(cl=cl, varlist = funLCA, envir = environment())
   
     withProgress(message = "Computing the models", value=0,{
-      rv$multi.fit <- multiLCA(tab.d, rv$models, rep.n)
+      rv$multi.fit <- multiLCA(tab.d, rv$models, rep.n, tol)
       
       incProgress(amount=1/(length(rv$models)+1), detail = "Summary statistics")
       rv$summary.LCA <- summary.multiLCA(rv$multi.fit)
-      rv$final.fit <- fitOptimal(tab.d, rv$models,
+      rv$final.fit <- fitOptimal(tab.d(), rv$models,
                                  rv$summary.LCA$optimal,
-                                 rv$multi.fit)
-      rv$fit.measures <- multiFitMeasures(tab.d, data(), rv$final.fit)
+                                 rv$multi.fit, tol)
+      rv$fit.measures <- multiFitMeasures(tab.d(), data(), rv$final.fit)
     })
     
   })
@@ -83,23 +97,49 @@ shinyServer(function(input, output) {
                      selected = as.numeric(which.min(rv$fit.measures[,6]))
     )
   )
+  
+  selected <- reactive({
+    rv$final.fit[[input$comparison_rows_selected]]
+  })
   output$plotIC <- renderPlot({
     plotComparison(rv$fit.measures)
   })
   output$parameters <- renderPrint({
-    rv$final.fit[[input$comparison_rows_selected]]
+    selected()
   })
   
   output$plotProportions <- renderPlot({
-    plotProportions(rv$final.fit[[input$comparison_rows_selected]]$pi,
-                    rv$final.fit[[input$comparison_rows_selected]]$classes)
+    plotProportions(selected()$pi)
   })
   
-  output$plotProbabilities <- renderPlot({
-    theta <- rv$final.fit[[input$comparison_rows_selected]]$theta
-    names(theta) <- colnames(data())
+  output$plotProbabilities <- renderPlotly({
+    theta <- selected()$theta
     
-    plotProbabilities(theta, input$WhichPlot)
+    ggplotly(plotProbabilities(theta, input$WhichPlot))
   })
+  
+  posterior <- reactive({
+    post <- selected()$posterior
+    post <- data.frame(post)
+    post$`Highest probability assignment` <- apply(post, 1, function(r){
+      colnames(post)[which.max(r)]})
+    post
+  })
+  
+  output$class <- DT::renderDataTable(
+    posterior()
+  )
+  
+  output$Download <- downloadHandler(
+
+    filename =  function() {
+      paste0("dataWithMembership", selected()$classes, ".csv")
+      },
+
+    content = function(con) {
+      d <- cbind(data(), posterior())
+      write.csv(d, con)
+    }
+  )
 })
 

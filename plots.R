@@ -7,12 +7,15 @@ plotComparison <- function(comparison){
     geom_line() + geom_point()
 }
 
-plotProportions <- function(pi, classes){
-  d <- data.frame(classes=1:classes,
+plotProportions <- function(pi){
+  d <- data.frame(classes=paste("Class", seq_along(pi)),
                   proportions=pi)
-  ggplot(data=d, aes(x=classes, y=proportions)) + 
+  
+  ggplot(data=d, aes(x=factor(classes), y=proportions, fill=proportions)) + 
     geom_bar(stat="identity") +
-    scale_y_continuous(limits=c(0,1))
+    scale_y_continuous(limits=c(0,1)) + 
+    ylab("") + xlab("") + ggtitle("Proportions of the class sizes") +
+    guides(fill=FALSE)
 }
 
 plotProbabilities <- function(theta, by.item=FALSE){
@@ -26,7 +29,3 @@ plotProbabilities <- function(theta, by.item=FALSE){
   }
 }
 
-test  <- data.frame(person=c("A", "B", "C", "D", "E"), 
-                    value1=c(100,150,120,80,150),     
-                    value2=c(25,30,45,30,30) , 
-                    value3=c(100,120,150,150,200)) 

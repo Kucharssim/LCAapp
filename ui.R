@@ -6,12 +6,12 @@ shinyUI(navbarPage(
         fileInput("file", "Load a datafile", accept=".csv"),
         tags$br(), tags$br(),
         uiOutput("classes"),
-        # selectInput("classes", "Number of classes",
-        #             choices=as.list(1:10), multiple=TRUE,
-        #             selected = 1:5),
         numericInput("replications", "Select the number of replications",
-                     value=10, min=0),
-        actionButton("estimate", "Estimate models")
+                     value = 10, min = 2),
+        numericInput("tolerance", "Adjust the tolerance",
+                     value = 1e-5, min = 1e-10, max = 1e-3, step = 1e-10),
+        #actionButton("estimate", "Estimate models")
+        uiOutput("estimate")
         ),
       mainPanel(
         tabsetPanel(type="tabs",
@@ -34,9 +34,10 @@ shinyUI(navbarPage(
         tabsetPanel(type="tabs",
           tabPanel("Plots", plotOutput("plotProportions"),
                    checkboxInput("WhichPlot", "Group by items"),
-                   plotOutput("plotProbabilities")),
+                   plotlyOutput("plotProbabilities")),
           tabPanel("Parameter estimates"),
-          tabPanel("Class membership")
+          tabPanel("Class membership",
+                   dataTableOutput("class"))
           )
     #  )
     #)  # sidebarLayout
