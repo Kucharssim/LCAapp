@@ -1,6 +1,8 @@
 shinyServer(function(input, output) {
   output$classes <- renderUI({
-    max <- prod(sapply(tab.d(), ncol))
+    
+    max <- whichIdentified(tab.d())
+    max <- ifelse(max>30, 30, max)
     selectInput("classes", "Number of classes",
                 choices=as.list(1:max), multiple=TRUE)
   })
@@ -14,11 +16,12 @@ shinyServer(function(input, output) {
   
   fulldata <- reactive({    
     inFile <- input$file
-    
+    #print(inFile)
     if(is.null(inFile)){
       read.csv('example.csv')
     } else {
-      read.csv(inFile$datapath)
+      #head(read.csv(inFile$datapath))
+      read.csv(paste(inFile$datapath))
     }
   })
   
@@ -29,7 +32,8 @@ shinyServer(function(input, output) {
       fulldata()
     } else if(length(clicked)==1){
       fulldata()
-    } else {
+    } 
+    else {
       fulldata()[,clicked+1]
     }
       
@@ -38,13 +42,15 @@ shinyServer(function(input, output) {
   tab.d <- reactive({
     reshapeData(data())
   })
-
-  output$datatable <- DT::renderDataTable(
-    fulldata(),
-    selection = list(target="column"),
-    rownames = FALSE
-  )
-    
+  
+  observe({
+     output$datatable <- DT::renderDataTable(
+      fulldata(),
+      selection = list(target="column"),
+      rownames = FALSE
+    )
+  })
+  
   output$summary <- renderUI({
     validate(
       need(length(input$datatable_columns_selected) != 1,
@@ -94,8 +100,11 @@ shinyServer(function(input, output) {
   output$comparison <- DT::renderDataTable(
     rv$fit.measures, rownames = FALSE, 
     selection = list(mode = "single",
-                     selected = as.numeric(which.min(rv$fit.measures[,6]))
-    )
+                     selected = as.numeric(which.min(rv$fit.measures[,7]))
+    ),
+    options = list(dom = 't',
+                   autoWidth=TRUE
+                   )
   )
   
   selected <- reactive({
@@ -141,5 +150,9 @@ shinyServer(function(input, output) {
       write.csv(d, con)
     }
   )
+  
+  output$probabilities <- renderUI({
+    
+  })
 })
 

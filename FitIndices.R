@@ -1,12 +1,13 @@
-df <- function(k, tab.d){
-  m <- sapply(tab.d, function(item){
-    ncol(item)
-  })
+nParamsDf <- function(k, tab.d){
+
+  lev <- Levels(tab.d)
   
-  #if(k>1){
-    return((k-1) + k*sum(m-1))
-  #} else(return(0))
+  n.params <- (k-1) + k*sum(lev-1)
+  df <- prod(lev) - 1 - n.params
+  
+  return(c(df, n.params))
 }
+
 
 chigSq <- function(d, theta, pi){
   n <- nrow(d)
@@ -54,9 +55,9 @@ Expected <- function(pi, theta, n=NA){
 #   return(wP)
 # }
 
-aicbic <- function(llik, df, n){
-  aic <- -2*llik + 2*df
-  bic <- -2*llik + log(n)*df
+aicbic <- function(llik, nParams, n){
+  aic <- -2*llik + 2*nParams
+  bic <- -2*llik + log(n)*nParams
   c(aic, bic)
 }
 
@@ -81,12 +82,13 @@ entropy <- function(p){
 
 fitMeasures <- function(d, rawd, model){
   classes <- model$classes
-  df <- df(classes, d)
+  df.n.params <- nParamsDf(classes, d)
   chi.g <- chigSq(rawd, model$theta, model$pi)
-  aicbic <- aicbic(model$llik, df, nrow(model$posterior))
+  aicbic <- aicbic(model$llik, df.n.params[2], nrow(model$posterior))
   entropy <- entropy(model$posterior)
   
-  c(classes, chi.g, df, aicbic, entropy)
+  c(classes, round(chi.g, 2), df.n.params,
+    round(c(aicbic, entropy), 2))
 }
 
 multiFitMeasures <- function(d, rawd, models){
@@ -95,6 +97,6 @@ multiFitMeasures <- function(d, rawd, models){
     fitMeasures(d, rawd, model)
     })
   tab <- t(tab)
-  colnames(tab) <- c("classes","Chi", "G", "df", "AIC", "BIC", "Entropy")
+  colnames(tab) <- c("classes","Chi", "G", "df", "nParams", "AIC", "BIC", "Entropy")
   return(tab)
 }
