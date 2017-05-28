@@ -32,3 +32,14 @@ whichIdentified <- function(d){
   k <- prod(lev) / (1+sum(lev-1))
   return(floor(k))
 }
+
+exportParameters <- function(pi, theta){
+  d <- melt(c(pi, theta))
+
+  d[1:length(pi), 2] <- levels(d$Var1)
+  d[1:length(pi), 3] <- "Proportions"
+  d[1:length(pi), 4] <- paste0("P(", levels(d$Var1), ")")
+  
+  colnames(d) <- c("Probability", "Class", "Level", "Item")
+  return(d[,c(1,2,4,3)])
+}

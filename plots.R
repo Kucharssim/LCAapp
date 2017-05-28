@@ -24,22 +24,25 @@ plotProportions <- function(pi){
 
 plotProbabilities <- function(theta, by.item=FALSE){
   d <- melt(lapply(theta, function(x){ 
-    f <- melt(x);
-    f[,2] <- as.character(f[,2]);
+    f <- melt(x)
+    f[,2] <- as.character(f[,2])
     f
     })
   )
+  d$Var2 <- as.factor(d$Var2)
+  colnames(d) <- c("Class", "Level", "Var", "Prob", "Item")
+  d$Probability <- paste("Probability:", round(d$Prob, 2))
   
-  #d <- melt(theta)
-  d$Levels <- as.factor(d$Var2)
   if(by.item){
-    ggplot(data=d, aes(x=Var1, y=value, fill=Levels)) + 
-      geom_bar(stat="identity", position = "stack") + facet_grid(~ L1) +
-      ylab("Probability")
+    ggplot(data=d, aes(x=Class, y=Prob,
+                       fill=Level, text=Probability)) + 
+      geom_bar(stat="identity", position = "stack") + facet_grid(~ Item) +
+      ylab("Probability") + xlab("") + guides(fill=FALSE)
   } else{
-    ggplot(data=d, aes(x=L1, y=value, fill=Levels)) + 
-      geom_bar(stat="identity", position = "stack") + facet_grid(~ Var1) + 
-      ylab("Probability")
+    ggplot(data=d, aes(x=Item, y=Prob,
+                       fill=Level, text=Probability)) + 
+      geom_bar(stat="identity", position = "stack") + facet_grid(~ Class) + 
+      ylab("Probability") + xlab("") + guides(fill=FALSE)
   }
 }
 

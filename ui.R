@@ -10,7 +10,6 @@ shinyUI(navbarPage(
                      value = 10, min = 2),
         numericInput("tolerance", "Adjust the tolerance",
                      value = 1e-5, min = 1e-10, max = 1e-3, step = 1e-10),
-        #actionButton("estimate", "Estimate models")
         uiOutput("estimate")
         ),
       mainPanel(
@@ -18,8 +17,9 @@ shinyUI(navbarPage(
           tabPanel("Data", DT::dataTableOutput('datatable'), uiOutput('summary')),
           tabPanel("Model diagnostics", verbatimTextOutput('diag')),
           tabPanel("Model comparison", DT::dataTableOutput('comparison'),
-                   plotOutput("plotIC")),
-          tabPanel("Parameter estimates", verbatimTextOutput('parameters'))
+                   plotOutput("plotIC")
+                   ),
+          tabPanel("Model details", verbatimTextOutput('details'))
         )
       ) # mainPanel
     )  # sidebarLayout
@@ -30,10 +30,15 @@ shinyUI(navbarPage(
       tabPanel("Plots", plotOutput("plotProportions"),
                checkboxInput("WhichPlot", "Group by items"),
                plotlyOutput("plotProbabilities")),
-      tabPanel("Parameter estimates"),
+      tabPanel("Parameter estimates",
+               downloadButton("DownloadPar",
+                              "Download Parameters"),
+               tags$br(), tags$br(),
+               DT::dataTableOutput('parameters')),
       tabPanel("Class membership",
                downloadButton("Download",
                               "Download class membership"),
+               tags$br(), tags$br(),
                dataTableOutput("class"))
       )
   ),  # tabPanel

@@ -16,11 +16,15 @@ shinyServer(function(input, output) {
   
   fulldata <- reactive({    
     inFile <- input$file
-    #print(inFile)
+
     if(is.null(inFile)){
       read.csv('example.csv')
     } else {
-      #head(read.csv(inFile$datapath))
+      validate(
+        need(grep("csv", inFile$type) == 1, 
+             message = "Only csv files are allowed! \n
+             Check documentation for details")
+      )
       read.csv(paste(inFile$datapath))
     }
   })
@@ -93,12 +97,21 @@ shinyServer(function(input, output) {
   })
   
   output$diag <- renderPrint({
-    list(loglik=apply(rv$summary.LCA[[1]], 2, sort, TRUE),
-         replicated=colSums(rv$summary.LCA[[3]]))
+    validate(
+      need(!is.null(rv$summary.LCA), "You need to estimate the models first")
+    )
+    
+    list(replicated=colSums(rv$summary.LCA[[3]]),
+         loglik=apply(rv$summary.LCA[[1]], 2, sort, TRUE)
+         )
   })
-  
-  output$comparison <- DT::renderDataTable(
-    rv$fit.measures, rownames = FALSE, 
+
+  output$comparison <- DT::renderDataTable({
+    validate(
+      need(!is.null(rv$fit.measures), "You need to estimate the models first")
+    )
+    rv$fit.measures},
+    rownames = FALSE, 
     selection = list(mode = "single",
                      selected = as.numeric(which.min(rv$fit.measures[,7]))
     ),
@@ -106,14 +119,23 @@ shinyServer(function(input, output) {
                    autoWidth=TRUE
                    )
   )
+
   
   selected <- reactive({
+    print(input$comparison_rows_selected)
+    validate(
+      need(!is.null(input$comparison_rows_selected),
+           "You need to estimate the models first")
+    )
     rv$final.fit[[input$comparison_rows_selected]]
   })
   output$plotIC <- renderPlot({
+    validate(
+      need(!is.null(rv$fit.measures), "You need to estimate the models first")
+    )
     plotComparison(rv$fit.measures)
   })
-  output$parameters <- renderPrint({
+  output$details <- renderPrint({
     selected()
   })
   
@@ -124,7 +146,8 @@ shinyServer(function(input, output) {
   output$plotProbabilities <- renderPlotly({
     theta <- selected()$theta
     
-    ggplotly(plotProbabilities(theta, input$WhichPlot))
+    ggplotly(plotProbabilities(theta, input$WhichPlot), 
+             tooltip = c("text", "x", "fill"))
   })
   
   posterior <- reactive({
@@ -133,6 +156,10 @@ shinyServer(function(input, output) {
     post$`Highest probability assignment` <- apply(post, 1, function(r){
       colnames(post)[which.max(r)]})
     post
+  })
+  
+  parameters <- reactive({
+    exportParameters(selected()$pi, selected()$theta)
   })
   
   output$class <- DT::renderDataTable(
@@ -151,8 +178,23 @@ shinyServer(function(input, output) {
     }
   )
   
-  output$probabilities <- renderUI({
+  output$parameters <- DT::renderDataTable(
+    parameters(),
+    options = list(dom = "ft",
+                   pageLength = nrow(parameters())
+    )
+  )
+  
+  output$DowloadPar <- downloadHandler(
     
-  })
+    filename = function() {
+      paste0("ParameterEstimates", selected()$classes, ".csv")
+    },
+    
+    content = function(con) {
+      d <- parameters()
+      write.csv(d, con)
+    }
+  )
 })
 
