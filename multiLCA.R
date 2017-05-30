@@ -1,4 +1,4 @@
-multiLCA <- function(d, models, rep.n, tol=1e-5){
+multiLCA <- function(d, models, rep.n, tol=1e-5, debug=FALSE){
   ### Fits a n models rep.n times in parallel
   ### input: d - dummy data
   ###        models - vector of number of classes to estimate
@@ -14,7 +14,9 @@ multiLCA <- function(d, models, rep.n, tol=1e-5){
   #clusterExport(cl=cl, varlist = funLCA, envir = environment())
   
   fits <- lapply(models, function(k){
-    incProgress(1/(length(models)+1), detail=paste("Computing", k, "classes"))
+    if(!debug){
+      incProgress(1/(length(models)+1), detail=paste("Computing", k, "classes"))
+    }
     
     parLapply(cl, 1:rep.n, function(x){
       emLCA(d, k, tol=tol, output.all = FALSE)
@@ -46,7 +48,7 @@ summary.multiLCA <- function(object){
 }
 
 
-fitOptimal <- function(d, models, optimal, starts){
+fitOptimal <- function(d, models, optimal, starts, tol){
   ### Fit optimal models
   ### input: d - dummy data
   ###        models - vector of number of classes to estimate
@@ -59,7 +61,9 @@ fitOptimal <- function(d, models, optimal, starts){
     emLCA(d = d, 
           k = models[o],
           start.theta = starts[[o]][[curr.optimal]]$theta,
-          start.pi = starts[[o]][[curr.optimal]]$pi)
+          start.pi = starts[[o]][[curr.optimal]]$pi, 
+          tol = tol
+          )
   })
   names(fits) <- models
   return(fits)

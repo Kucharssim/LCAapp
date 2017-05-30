@@ -1,4 +1,3 @@
-#library(gtools) # for rdirichlet()
 emLCA <- function(d, k, start.theta=randomTheta(d, k), 
                   start.pi=gtools::rdirichlet(1, rep(1, k)),
                   tol=1e-5, output.all=TRUE){
@@ -36,6 +35,12 @@ emLCA <- function(d, k, start.theta=randomTheta(d, k),
   }
   
   if(output.all){
+    names(theta) <- names(start.theta) <- names(d)
+    theta <- lapply(theta, function(item){
+      rownames(item) <- paste("Class", 1:k)
+      item
+    })
+    colnames(posterior) <- paste("Class", 1:k)
     invisible(list(llik=llik.new,
                    n.iter=n.iter,
                    classes=k,
