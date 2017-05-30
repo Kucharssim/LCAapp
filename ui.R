@@ -6,7 +6,7 @@ shinyUI(navbarPage(
         fileInput("file", "Load a datafile", accept=".csv"),
         tags$br(), tags$br(),
         uiOutput("classes"),
-        numericInput("replications", "Select the number of replications",
+        numericInput("replications", "Number of replications",
                      value = 10, min = 2),
         numericInput("tolerance", "Adjust the tolerance",
                      value = 1e-5, min = 1e-10, max = 1e-3, step = 1e-10),
@@ -14,7 +14,11 @@ shinyUI(navbarPage(
         ),
       mainPanel(
         tabsetPanel(type="tabs",
-          tabPanel("Data", DT::dataTableOutput('datatable'), uiOutput('summary')),
+          tabPanel("Data",
+                   tags$h3("Data"),
+                   DT::dataTableOutput('datatable'),
+                   tags$h3("Summary"),
+                   uiOutput('summary')),
           tabPanel("Model diagnostics", verbatimTextOutput('diag')),
           tabPanel("Model comparison", DT::dataTableOutput('comparison'),
                    plotOutput("plotIC")
@@ -42,7 +46,8 @@ shinyUI(navbarPage(
                dataTableOutput("class"))
       )
   ),  # tabPanel
-  tabPanel("About"#, includeHTML(rmarkdown::render("Intro.Rmd"))
+  tabPanel("About", includeMarkdown("Intro.Rmd")
+           #, includeHTML(rmarkdown::render("Intro.Rmd"))
            #fluidRow(column(2),
           #          column(8, 
           #                 includeHTML("Intro.html")
