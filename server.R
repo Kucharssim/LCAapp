@@ -189,7 +189,7 @@ shinyServer(function(input, output) {
   })
   
   # return the class membership probabilities
-  output$class <- DT::renderDataTable(
+  output$Class <- DT::renderDataTable(
     posterior()
   )
 
