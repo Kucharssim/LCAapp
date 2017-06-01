@@ -1,12 +1,14 @@
 shinyServer(function(input, output) {
+  
+  # Return the dropdown menu for selecting models
   output$classes <- renderUI({
-    
     max <- whichIdentified(tab.d())
     max <- ifelse(max>30, 30, max)
     selectInput("classes", "Number of classes",
                 choices=as.list(1:max), multiple=TRUE)
   })
   
+  # Estimate button
   output$estimate <- renderUI({
     validate(
       need(length(input$classes)>0, "Specify the models")
@@ -14,11 +16,12 @@ shinyServer(function(input, output) {
     actionButton("estimate", "Estimate models")
   })
   
+  # Load the complete data
   fulldata <- reactive({    
     inFile <- input$file
 
     if(is.null(inFile)){
-      read.csv('example.csv')
+      read.csv('data/example.csv')
     } else {
       validate(
         need(grep("csv", inFile$type) == 1, 
@@ -29,6 +32,7 @@ shinyServer(function(input, output) {
     }
   })
   
+  # Select the columns on which the user clicked
   data <- reactive({
     clicked <- input$datatable_columns_selected
 
@@ -43,10 +47,12 @@ shinyServer(function(input, output) {
       
   })
   
+  # Reshape the data for the estimation function
   tab.d <- reactive({
     reshapeData(data())
   })
   
+  # Return the reactive dataTable
   observe({
      output$datatable <- DT::renderDataTable(
       fulldata(),
@@ -55,6 +61,7 @@ shinyServer(function(input, output) {
     )
   })
   
+  # Return the summary tables for selected variables
   output$summary <- renderUI({
     validate(
       need(length(input$datatable_columns_selected) != 1,
@@ -74,6 +81,7 @@ shinyServer(function(input, output) {
   
   rv <- reactiveValues()
     
+  # Estimate the models after clicking the estimate button
   observeEvent(input$estimate, {
     tab.d <- tab.d()
     tol <- input$tolerance
@@ -84,18 +92,28 @@ shinyServer(function(input, output) {
     clusterExport(cl=cl, varlist = funLCA, envir = environment())
   
     withProgress(message = "Computing the models", value=0,{
+      
+      # fit multiple models at once
       rv$multi.fit <- multiLCA(tab.d, rv$models, rep.n, tol)
       
-      incProgress(amount=1/(length(rv$models)+1), detail = "Summary statistics")
+      incProgress(amount=1/(length(rv$models)+1),
+                  detail = "Summary statistics")
+      
+      # make a summary for the model diagnostics
       rv$summary.LCA <- summary.multiLCA(rv$multi.fit)
+      
+      # fit the global best model
       rv$final.fit <- fitOptimal(tab.d(), rv$models,
                                  rv$summary.LCA$optimal,
                                  rv$multi.fit, tol)
+      
+      # compute the fit measures for all best models
       rv$fit.measures <- multiFitMeasures(tab.d(), data(), rv$final.fit)
     })
     
   })
   
+  # return the model diagnostics
   output$diag <- renderPrint({
     validate(
       need(!is.null(rv$summary.LCA), "You need to estimate the models first")
@@ -106,6 +124,7 @@ shinyServer(function(input, output) {
          )
   })
 
+  # output the reactive table for model selection
   output$comparison <- DT::renderDataTable({
     validate(
       need(!is.null(rv$fit.measures), "You need to estimate the models first")
@@ -120,29 +139,34 @@ shinyServer(function(input, output) {
                    )
   )
 
-  
+  # store the selected model
   selected <- reactive({
-    print(input$comparison_rows_selected)
     validate(
       need(!is.null(input$comparison_rows_selected),
            "You need to estimate the models first")
     )
     rv$final.fit[[input$comparison_rows_selected]]
   })
+  
+  # return the plot of the AIC/BIC for all models
   output$plotIC <- renderPlot({
     validate(
       need(!is.null(rv$fit.measures), "You need to estimate the models first")
     )
     plotComparison(rv$fit.measures)
   })
+  
+  # return the details of the selected model
   output$details <- renderPrint({
     selected()
   })
   
+  # return the plot of the class proportions
   output$plotProportions <- renderPlot({
     plotProportions(selected()$pi)
   })
   
+  # return the plot of the conditional probabilities of responses
   output$plotProbabilities <- renderPlotly({
     theta <- selected()$theta
     
@@ -150,6 +174,7 @@ shinyServer(function(input, output) {
              tooltip = c("text", "x", "fill"))
   })
   
+  # store the table of probabilities of class membership
   posterior <- reactive({
     post <- selected()$posterior
     post <- data.frame(post)
@@ -158,14 +183,17 @@ shinyServer(function(input, output) {
     post
   })
   
+  # store the table of model parameters
   parameters <- reactive({
     exportParameters(selected()$pi, selected()$theta)
   })
   
+  # return the class membership probabilities
   output$class <- DT::renderDataTable(
     posterior()
   )
-  
+
+  # download the class membership probabilties  
   output$Download <- downloadHandler(
 
     filename =  function() {
@@ -178,6 +206,7 @@ shinyServer(function(input, output) {
     }
   )
   
+  # return the model parameters
   output$parameters <- DT::renderDataTable(
     parameters(),
     options = list(dom = "ft",
@@ -185,6 +214,7 @@ shinyServer(function(input, output) {
     )
   )
   
+  # download the model parameters
   output$DowloadPar <- downloadHandler(
     
     filename = function() {

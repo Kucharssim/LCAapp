@@ -5,13 +5,12 @@ library(DT)
 library(reshape2)
 library(dplyr)
 library(plotly)
-source("LCA.R")
-source("DataHandling.R")
-source("multiLCA.R")
-source("FitIndices.R")
-source("plots.R")
-#funLCA <- c("emLCA", "compLik", "assignProb",
-#            "randomTheta", "updateTheta", "d", "k")
+
+source("R/LCA.R")
+source("R/DataHandling.R")
+source("R/multiLCA.R")
+source("R/FitIndices.R")
+source("R/plots.R")
 
 cores <- detectCores() - 1
 cl <- makeCluster(cores)
