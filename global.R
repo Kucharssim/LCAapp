@@ -13,5 +13,6 @@ source("R/multiLCA.R")
 source("R/FitIndices.R")
 source("R/plots.R")
 
-cores <- detectCores() - 1
+cores <- detectCores()
+if(cores > 1) { cores <- cores - 1 }
 cl <- makeCluster(cores)
