@@ -4,6 +4,7 @@ library(gtools)
 library(DT)
 library(reshape2)
 library(dplyr)
+library(ggplot2)
 library(plotly)
 
 source("R/LCA.R")
