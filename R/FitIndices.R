@@ -153,7 +153,7 @@ multiFitMeasures <- function(d, rawd, models){
     })
   
   tab <- t(tab)
-  colnames(tab) <- c("classes","Chi", "G", "df", "nParams", "AIC", "BIC", "Entropy")
+  colnames(tab) <- c("classes","Chi Square", "G Square", "df", "n of params", "AIC", "BIC", "Entropy")
   
   return(tab)
 }
