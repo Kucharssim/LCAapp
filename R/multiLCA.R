@@ -17,7 +17,7 @@ multiLCA <- function(d, models, rep.n, tol=1e-5, debug=FALSE){
     if(!debug){
       # update the progress bar
       incProgress(1/(length(models)+1),
-                  detail=paste(k, "classes"))
+                  detail=paste("Model", k))
     }
     
     # Fit the replications of the model in parallel
