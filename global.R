@@ -4,6 +4,7 @@ library(gtools)
 library(DT)
 library(reshape2)
 library(dplyr)
+library(ggplot2)
 library(plotly)
 
 source("R/LCA.R")
@@ -12,5 +13,6 @@ source("R/multiLCA.R")
 source("R/FitIndices.R")
 source("R/plots.R")
 
-cores <- detectCores() - 1
+cores <- detectCores()
+if(cores > 1) { cores <- cores - 1 }
 cl <- makeCluster(cores)
