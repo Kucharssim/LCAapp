@@ -91,7 +91,7 @@ shinyServer(function(input, output) {
                 "randomTheta", "updateTheta", "tab.d", "fitMeasures", "tol")
     clusterExport(cl=cl, varlist = funLCA, envir = environment())
   
-    withProgress(message = "Computing the models", value=0,{
+    withProgress(message = "Computing...", value=0,{
       
       # fit multiple models at once
       rv$multi.fit <- multiLCA(tab.d, rv$models, rep.n, tol)
