@@ -66,7 +66,7 @@ shinyUI(navbarPage(
                downloadButton("Download",
                               "Download class membership"),
                tags$br(), tags$br(),
-               dataTableOutput("class"))
+               DT::dataTableOutput("class"))
       )
   ),  # tabPanel
   
