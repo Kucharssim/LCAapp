@@ -15,9 +15,11 @@ shinyUI(navbarPage(
                      value = 10, min = 2),
         numericInput("tolerance", "Adjust the tolerance",
                      value = 1e-5, min = 1e-10, max = 1e-3, step = 1e-10),
-        uiOutput("estimate")
+        uiOutput("estimate"),
+        tags$br(), tags$br(),
+        helpText("Found a bug or experiencing trouble? Post and issue on"),
+        a(href="https://github.com/Kucharssim/LCAapp", img(src="git.png"))
         ),
-      
       # Main field
       mainPanel(
         tabsetPanel(type="tabs",
@@ -66,11 +68,7 @@ shinyUI(navbarPage(
                downloadButton("Download",
                               "Download class membership"),
                tags$br(), tags$br(),
-<<<<<<< HEAD
                DT::dataTableOutput("Class"))
-=======
-               DT::dataTableOutput("class"))
->>>>>>> 1244ec2a52aae76a738cf502e06d98bff50ced2c
       )
   ),  # tabPanel
   
