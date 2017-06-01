@@ -24,7 +24,7 @@ shinyServer(function(input, output) {
       read.csv('data/example.csv')
     } else {
       validate(
-        need(grep("csv", inFile$type) == 1, 
+        need(grep("csv", inFile$name) == 1, 
              message = "Only csv files are allowed! \n
              Check documentation for details")
       )
@@ -215,7 +215,7 @@ shinyServer(function(input, output) {
   )
   
   # download the model parameters
-  output$DowloadPar <- downloadHandler(
+  output$DownloadPar <- downloadHandler(
     
     filename = function() {
       paste0("ParameterEstimates", selected()$classes, ".csv")
@@ -226,5 +226,6 @@ shinyServer(function(input, output) {
       write.csv(d, con)
     }
   )
+  
 })
 
