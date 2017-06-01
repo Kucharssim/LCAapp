@@ -17,7 +17,7 @@ shinyUI(navbarPage(
                      value = 1e-5, min = 1e-10, max = 1e-3, step = 1e-10),
         uiOutput("estimate"),
         tags$br(), tags$br(),
-        helpText("Found a bug or experiencing trouble? Post and issue on"),
+        helpText("Found a bug or experiencing trouble? Post an issue on"),
         a(href="https://github.com/Kucharssim/LCAapp", img(src="git.png"))
         ),
       # Main field
