@@ -5,7 +5,7 @@ detailed documentation can be found in documents/Documentation.pdf
 
 run locally in the R Studio session as regular Shiny app, or run from GitHub with:
 
-if(!require('shiny') {install.packages('shiny'}
+if(!require('shiny')) {install.packages('shiny')}
 
 if(!require('parallel')) {install.packages('parallel')}
 
