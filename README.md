@@ -5,6 +5,7 @@ detailed documentation can be found in documents/Documentation.pdf
 
 run locally in the R Studio session as regular Shiny app, or run from GitHub with:
 
+```
 if(!require('shiny')) {install.packages('shiny')}
 
 if(!require('parallel')) {install.packages('parallel')}
@@ -22,3 +23,7 @@ if(!require('ggplot2')) {install.packages('ggplot2')}
 if(!require('plotly')) {install.packages('plotly')}
 
 shiny::runGitHub("kucharssim/LCAapp")
+```
+
+
+This application is a sister of Latent Profile Analysis (LPA) app (https://github.com/Infinnacage/LPAapp).
