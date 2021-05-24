@@ -26,4 +26,4 @@ shiny::runGitHub("kucharssim/LCAapp")
 ```
 
 
-This application is a sister of Latent Profile Analysis (LPA) app (https://github.com/Infinnacage/LPAapp).
+This application is a sister of Latent Profile Analysis (LPA) app (https://github.com/Spiritspeak/LPAapp).
